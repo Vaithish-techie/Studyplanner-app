@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Study Planner</title>
+  <style>
+    /* CSS styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+      margin-bottom: 40px;
+    }
+
+    form {
+      max-width: 500px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    label, input, button {
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #result {
+      margin-top: 20px;
+      text-align: center;
+      padding: 20px;
+      background-color: #f4f4f4;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    #loading {
+      text-align: center;
+      font-size: 18px;
+      color: #333;
+      font-weight: bold;
+      display: none;
+    }
+
+    pre {
+      white-space: pre-wrap; 
+      word-wrap: break-word;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .example {
+      font-size: 14px;
+      color: #777;
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Smart Study Planner</h1>
+  <form id="study-planner-form">
+    <label for="activity">Activity:</label>
+    <input type="text" id="activity" name="activity" required>
+    <small class="example">Example: Study Probability, DSA, Internship</small>
+
+    <label for="time-slot">Time Slot:</label>
+    <input type="text" id="time-slot" name="time-slot" required>
+    <small class="example">Example: 2 hours, 3 hours, 1.5 hours</small>
+
+    <label for="work-time">Time to Work:</label>
+    <input type="text" id="work-time" name="work-time" required>
+    <small class="example">Example: 6 to 11</small>
+
+    <label for="break-time">Time for Break:</label>
+    <input type="text" id="break-time" name="break-time" required>
+    <small class="example">Example: 7 to 7:30 and 9 to 9:30</small>
+
+    <button type="submit">Submit</button>
+  </form>
+  
+  <div id="loading"></div>
+  <div id="result"></div>
+
+  <script>
+    // JavaScript for form handling
+    document.getElementById("study-planner-form").addEventListener("submit", async function (e) {
+      e.preventDefault(); // Prevent page refresh
+
+      // Show loading message
+      document.getElementById("loading").innerText = "Getting results... Please wait.";
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("result").style.display = "none";
+
+      // Gather form data
+      const data = {
+        activity: document.getElementById("activity").value,
+        "time slot": document.getElementById("time-slot").value,
+        "time to work": document.getElementById("work-time").value,
+        "time for break": document.getElementById("break-time").value,
+      };
+
+      const startTime = Date.now(); // Track the start time
+
+      try {
+        // Send data to Flask server
+        const response = await fetch("/study-planner", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        // Get the result and display it
+        const result = await response.json();
+
+        // Track the end time
+        const endTime = Date.now();
+        const timeTaken = ((endTime - startTime) / 1000).toFixed(2); // Time taken in seconds
+
+        // Format the result text
+        const formattedResult = `
+          <h2>Ideal Timetable:</h2>
+          <pre>${result.result}</pre>
+          <p><strong>Time taken: </strong>${timeTaken} seconds</p>
+        `;
+
+        // Display the formatted result dynamically
+        document.getElementById("result").innerHTML = formattedResult;
+        document.getElementById("result").style.display = "block";
+        document.getElementById("loading").style.display = "none";
+
+      } catch (error) {
+        document.getElementById("result").innerHTML = `<span style="color: red;">Error: ${error.message}</span>`;
+        document.getElementById("loading").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
